@@ -84,7 +84,6 @@ public class RootCmdUtils {
             output.write(EOF_BIN.getBytes());
             output.flush();
             
-            // 确保stdin和stderr读完，避免waitFor被阻塞（http://yearsaaaa123789.iteye.com/blog/1404865）
             String response;
             while((response = input.readLine()) != null) {
                 if (BuildConfig.DEBUG) {
