@@ -8,6 +8,7 @@ import net.ds.screenshot.FileUtils;
 import net.ds.screenshot.core.RootCmdUtils.CmdCallback;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.util.Log;
 
 /**
@@ -73,7 +74,11 @@ public class Snapshot {
     
     
     public static void captureAsync(SnapshotCallBack callback) {
-        captureByScreenCapBin(callback);
+        if ((Build.VERSION.SDK_INT >= 14) && (new File(BIN_SCREEN_CAP).exists())) {
+            captureByScreenCapBin(callback);
+        } else {
+            captureByFb0(callback);
+        }
     }
     
     private static void captureByScreenCapBin(final SnapshotCallBack callback) {
@@ -99,7 +104,7 @@ public class Snapshot {
                 }
                 
                 if (callback instanceof SnapshotToBitmapCallBack) {
-                    Bitmap bitmap = BitmapFactory.decodeFile(tmpPath);
+                    Bitmap bitmap = BitmapFactory.decodeFile(tmpPath); //TODO 待优化，避免OOM
                     boolean isValidBmp = bitmap != null && !bitmap.isRecycled() && bitmap.getWidth() > 0 && bitmap.getHeight() > 0;
                     
                     if (BuildConfig.DEBUG) {
