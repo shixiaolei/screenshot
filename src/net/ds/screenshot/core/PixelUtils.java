@@ -20,7 +20,7 @@ public class PixelUtils {
      */
     public static boolean bytesToInts(byte[] byteArray, int[] intArray, int format) {
         if (format == PixelFormat.RGBA_8888) {
-            return bytesToIntAsRgba88881(byteArray, intArray);
+            return bytesToIntAsRgba8888(byteArray, intArray);
         } else if (format == PixelFormat.RGBX_8888) {
             return bytesToIntAsRgbx8888(byteArray, intArray);
         } else if (format == PixelFormat.RGB_888) {
@@ -36,7 +36,7 @@ public class PixelUtils {
         }
     }
 
-    private static boolean bytesToIntAsRgba88881(byte[] paramArrayOfByte, int[] paramArrayOfInt) {
+    private static boolean bytesToIntAsRgba8888(byte[] paramArrayOfByte, int[] paramArrayOfInt) {
         // 将rgb转为色值
         for (int m = 0; m < paramArrayOfInt.length; m++) {
             int r = (paramArrayOfByte[m * 4] & 0xFF);
@@ -46,21 +46,6 @@ public class PixelUtils {
             paramArrayOfInt[m] = (a << 24) + (r << 16) + (g << 8) + b;
         }
         return true;
-    }
-    private static boolean bytesToIntAsRgba8888(byte[] paramArrayOfByte, int[] paramArrayOfInt) {
-        boolean bool = true;
-        int i = paramArrayOfInt.length;
-        for (int j = 0; j < i; j++) {
-            int k = b(paramArrayOfByte, j * 4);
-            int m = 0xFF000000 & k;
-            int n = (k & 0xFF) << 16;
-            int i1 = 0xFF00 & k;
-            int i2 = (k & 0xFF0000) >> 16 | (i1 | (m | n));
-            paramArrayOfInt[j] = i2;
-            if (i2 != 0)
-                bool = false;
-        }
-        return bool;
     }
 
     private static boolean bytesToIntAsRgbx8888(byte[] paramArrayOfByte, int[] paramArrayOfInt) {
