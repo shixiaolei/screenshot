@@ -85,7 +85,7 @@ public class Snapshot {
     
     
     public static void captureAsync(SnapshotCallBack callback) {
-        if ((Build.VERSION.SDK_INT >= 14) && (new File(BIN_SCREEN_CAP).exists()) && false) {
+        if ((Build.VERSION.SDK_INT >= 14) && (new File(BIN_SCREEN_CAP).exists())) {
             captureByScreenCapBin(callback);
         } else {
             captureByFb0(callback);
