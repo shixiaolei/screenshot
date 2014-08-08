@@ -5,12 +5,14 @@ import java.io.File;
 import java.io.FileInputStream;
 
 import net.ds.screenshot.App;
+import net.ds.screenshot.BitmapUtils;
 import net.ds.screenshot.BuildConfig;
 import net.ds.screenshot.FileUtils;
 import net.ds.screenshot.IOUtils;
 import net.ds.screenshot.core.RootCmdUtils.CmdCallback;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 import android.graphics.PixelFormat;
 import android.os.Build;
@@ -30,6 +32,7 @@ public class Snapshot {
     private static final String BIN_SCREEN_CAP = "/system/bin/screencap";
     private static final String DEV_GRAPHICS_FB0 = "/dev/graphics/fb0";
     private static final String DEV_FB0 = "/dev/fb0";
+    private static final  String SCREENSHOT_PATH = new File(App.getApp().getFilesDir(), "screen_capture_tmp.png").getAbsolutePath();
     
     /**
      * 截屏回调基类.
@@ -70,7 +73,7 @@ public class Snapshot {
             public void run() {
                 
                 try {
-                    Thread.sleep(500);//FIXME 方便测试效果，延迟5秒截图
+                    Thread.sleep(5000);//FIXME 方便测试效果，延迟5秒截图
                 } catch (InterruptedException e) {
                 }
                 
@@ -97,12 +100,11 @@ public class Snapshot {
             Log.d(TAG, "captureByScreenCapBin called");
         }
         
-        final String tmpPath = new File(App.getApp().getFilesDir(), "screen_capture_tmp.png").getAbsolutePath();
-        final File picture = new File(tmpPath);
+        final File picture = new File(SCREENSHOT_PATH);
         FileUtils.deleteQuietly(picture);
         FileUtils.ensureDirectory(picture.getParentFile());
         
-        String[] cmd = new String[] {BIN_SCREEN_CAP + " -p " + tmpPath};
+        String[] cmd = new String[] {BIN_SCREEN_CAP + " -p " + SCREENSHOT_PATH};
         RootCmdUtils.execute(cmd, new CmdCallback() {
             
             @Override
@@ -112,7 +114,7 @@ public class Snapshot {
                 }
                 
                 if (callback instanceof SnapshotToBitmapCallBack) {
-                    Bitmap bitmap = BitmapFactory.decodeFile(tmpPath); //TODO 待优化，避免OOM
+                    Bitmap bitmap = BitmapFactory.decodeFile(SCREENSHOT_PATH); //TODO 待优化，避免OOM
                     boolean isValidBmp = isValidBitmap(bitmap);
                     
                     if (BuildConfig.DEBUG) {
@@ -159,14 +161,16 @@ public class Snapshot {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "captureByFb0 called");
         }
-        File dev = getFb0Dev();
+        final File dev = getFb0Dev();
         if (dev == null) {
             callback.onFailed();
         }
         
-        if (dev.canRead() && !dev.canWrite()) {
+        if (dev.canRead() && dev.canWrite()) {
             readScreenshotFromFb0(callback);
+            return;
         }
+        
         String[] cmd = new String[] {"chmod 666 " + dev.getAbsolutePath()};
         RootCmdUtils.execute(cmd, new CmdCallback() {
             @Override
@@ -220,11 +224,25 @@ public class Snapshot {
             File dev = getFb0Dev();
             input = new DataInputStream(new FileInputStream(dev));
             input.readFully(pixelBytes);
+            
             boolean convertSucceed = PixelUtils.bytesToInts(pixelBytes, pixelInts, format);
             Bitmap bitmap = Bitmap.createBitmap(pixelInts, width, height, Bitmap.Config.ARGB_8888);
             boolean isValidBitmap = isValidBitmap(bitmap);
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "readScreenshotFromFb0 convertSucceed = " + convertSucceed + ", isValidBitmap = " + isValidBitmap);
+            }
+            
+            if (isValidBitmap) {
+                if (callback instanceof SnapshotToBitmapCallBack) {
+                    ((SnapshotToBitmapCallBack) callback).onSucceed(bitmap);
+                } else if (callback instanceof SnapshotToFileCallBack) {
+                    final File picture = new File(SCREENSHOT_PATH);
+                    FileUtils.deleteQuietly(picture);
+                    FileUtils.ensureDirectory(picture.getParentFile());
+                    BitmapUtils.savePicToPath(bitmap, new File(SCREENSHOT_PATH), CompressFormat.PNG);
+                }
+            } else {
+                callback.onFailed();
             }
             
         } catch (Throwable e) {

@@ -23,7 +23,7 @@ public class RootCmdUtils {
     private static final String TAG = "RootCmdUtils";
     private static final String EOF = "shell_eof";
     private static final String EOF_BIN = "\necho " + EOF + " \n";
-    private static final long DEFAULT_TIMEOUT = DateUtils.SECOND_IN_MILLIS * 45;
+    private static final long DEFAULT_TIMEOUT = DateUtils.SECOND_IN_MILLIS * 30;
     
     /**
      * 执行回调.
