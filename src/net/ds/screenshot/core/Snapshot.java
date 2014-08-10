@@ -235,11 +235,13 @@ public class Snapshot {
             if (isValidBitmap) {
                 if (callback instanceof SnapshotToBitmapCallBack) {
                     ((SnapshotToBitmapCallBack) callback).onSucceed(bitmap);
+                    
                 } else if (callback instanceof SnapshotToFileCallBack) {
                     final File picture = new File(SCREENSHOT_PATH);
                     FileUtils.deleteQuietly(picture);
                     FileUtils.ensureDirectory(picture.getParentFile());
                     BitmapUtils.savePicToPath(bitmap, new File(SCREENSHOT_PATH), CompressFormat.PNG);
+                    ((SnapshotToFileCallBack) callback).onSucceed(picture);
                 }
             } else {
                 callback.onFailed();
