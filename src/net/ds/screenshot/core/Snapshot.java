@@ -57,7 +57,7 @@ public class Snapshot {
      * 
      * @author shixiaolei
      */
-    public interface SnapshotToFileCallBack {
+    public interface SnapshotToFileCallBack extends SnapshotCallBack {
         public void onSucceed(File f);
     }
     
